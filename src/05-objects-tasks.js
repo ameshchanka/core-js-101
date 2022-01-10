@@ -20,8 +20,10 @@
  *    console.log(r.height);      // => 20
  *    console.log(r.getArea());   // => 200
  */
-function Rectangle(/* width, height */) {
-  throw new Error('Not implemented');
+function Rectangle(width, height) {
+  this.width = width;
+  this.height = height;
+  Rectangle.prototype.getArea = () => width * height;
 }
 
 
@@ -35,8 +37,8 @@ function Rectangle(/* width, height */) {
  *    [1,2,3]   =>  '[1,2,3]'
  *    { width: 10, height : 20 } => '{"height":10,"width":20}'
  */
-function getJSON(/* obj */) {
-  throw new Error('Not implemented');
+function getJSON(obj) {
+  return JSON.stringify(obj);
 }
 
 
@@ -51,8 +53,8 @@ function getJSON(/* obj */) {
  *    const r = fromJSON(Circle.prototype, '{"radius":10}');
  *
  */
-function fromJSON(/* proto, json */) {
-  throw new Error('Not implemented');
+function fromJSON(proto, json) {
+  return Object.assign(Object.create(proto), JSON.parse(json));
 }
 
 
@@ -109,34 +111,96 @@ function fromJSON(/* proto, json */) {
  *
  *  For more examples see unit tests.
  */
-
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  str: '',
+  element1: '',
+  id1: '',
+  class1: '',
+  attr1: '',
+  pseudoClass1: '',
+  pseudoElement1: '',
+
+  isEmpty(...attr) {
+    return attr.every((elem) => elem === '');
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  element(value) {
+    const o = { ...this };
+    if (o.element1 !== '') {
+      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    }
+    if (!o.isEmpty(o.id1, o.class1, o.attr1, o.pseudoClass1, o.pseudoElement1)) {
+      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    o.element1 = value;
+    o.str += value;
+    return o;
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    const o = { ...this };
+    if (o.id1 !== '') {
+      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    }
+    if (!o.isEmpty(o.class1, o.attr1, o.pseudoClass1, o.pseudoElement1)) {
+      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    o.id1 = value;
+    o.str += '#'.concat(value);
+    return o;
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    const o = { ...this };
+    if (!o.isEmpty(o.attr1, o.pseudoClass1, o.pseudoElement1)) {
+      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    o.class1 = value;
+    o.str += '.'.concat(value);
+    return o;
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    const o = { ...this };
+    if (!o.isEmpty(o.pseudoClass1, o.pseudoElement1)) {
+      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    o.attr1 = value;
+    o.str += '['.concat(value).concat(']');
+    return o;
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    const o = { ...this };
+    if (!o.isEmpty(o.pseudoElement1)) {
+      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    o.pseudoClass1 = value;
+    o.str += ':'.concat(value);
+    return o;
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    const o = { ...this };
+    if (o.pseudoElement1 !== '') {
+      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    }
+    o.pseudoElement1 = value;
+    o.str += '::'.concat(value);
+    return o;
+  },
+
+  combine(selector1, combinator, selector2) {
+    const o = { ...this };
+    let str1 = ''.concat(selector1.stringify());
+    str1 += ' '.concat(combinator).concat(' ');
+    str1 = str1.concat(selector2.stringify());
+    o.str = ''.concat(str1);
+    return o;
+  },
+
+  stringify() {
+    return this.str;
   },
 };
 
